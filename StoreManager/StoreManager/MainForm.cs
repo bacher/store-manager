@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Data.SqlServerCe;
+using System.Windows.Forms;
+
 
 namespace StoreManager
 {
@@ -19,8 +14,6 @@ namespace StoreManager
         public int qty;
         public int givenQry;
     }
-
-
 
     public partial class MainForm : Form
     {
@@ -90,6 +83,8 @@ namespace StoreManager
 
             using (var sqlConnection = new SqlCeConnection(connectionString))
             {
+                sqlConnection.Open();
+
                 var command = new SqlCeCommand(
                     "SELECT Doc.DocumentID, Doc.Name, Item.LineID, Item.ItemName, Item.GivenQty " +
                     "FROM Document as Doc " +
@@ -100,22 +95,21 @@ namespace StoreManager
                     sqlConnection
                 );
 
-                command.Parameters.Add("documentID", DocumentID);
-                sqlConnection.Open();
+                //command.Parameters.Add("documentID", DocumentID);
+                command.Parameters.AddWithValue("documentID", DocumentID);
                 var reader = command.ExecuteReader();
 
                 try
                 {
                     if (reader.Read())
-                    {
-                        //MessageBox.Show(string.Format("{0} {1} {2} {3} {4}", reader[0], reader[1], reader[2], reader[3], reader[4]));
+                    {                    
                         Item item;
 
-                        item.documentID = reader.GetInt32(0);
-                        item.documentName = reader.GetString(1);
-                        item.lineID = reader.GetInt32(2);
-                        item.name = reader.GetString(3);
-                        item.givenQry = reader.GetInt32(4);
+                        item.documentID = (int)reader["DocumentID"];
+                        item.documentName = (string)reader["Name"];
+                        item.lineID = (int)reader["LineID"];
+                        item.name = (string)reader["ItemName"];
+                        item.givenQry = (int)reader["GivenQty"];
                         item.qty = 0;
 
                         currentDocumentID = item.documentID;
@@ -200,8 +194,8 @@ namespace StoreManager
                     sqlConnection
                 );
 
-                command.Parameters.Add("NewQty", item.qty);
-                command.Parameters.Add("LineID", item.lineID);
+                command.Parameters.AddWithValue("NewQty", item.qty);
+                command.Parameters.AddWithValue("LineID", item.lineID);
 
                 sqlConnection.Open();
 
